@@ -187,7 +187,7 @@ void update()
 
     lastPipeSpawnTime++;
 
-    if (lastPipeSpawnTime >= 30)
+    if (lastPipeSpawnTime >= 120)
     {
         generatePipes();
     }
@@ -224,7 +224,7 @@ void update()
     {
         if (!actualPipe->isDestroyed)
         {
-            actualPipe->x -= 75 * 10;
+            actualPipe->x -= 2;
             actualPipe->sprite.bounds.x = actualPipe->x;
         }
 
@@ -283,22 +283,22 @@ void renderTopScreen()
         }
     }
 
-    if (highScore < 10)
-    {
-        highScoreNumbers[highScore].bounds.x = 180;
-        renderSprite(highScoreNumbers[highScore]);
-    }
-    else
-    {
-        int tens = (int)(highScore / 10);
-        int units = (int)(highScore % 10);
+    // if (highScore < 10)
+    // {
+    //     highScoreNumbers[highScore].bounds.x = 180;
+    //     renderSprite(highScoreNumbers[highScore]);
+    // }
+    // else
+    // {
+    //     int tens = (int)(highScore / 10);
+    //     int units = (int)(highScore % 10);
 
-        highScoreNumberTens[tens].bounds.x = 170;
-        highScoreNumbers[units].bounds.x = 180;
+    //     highScoreNumberTens[tens].bounds.x = 170;
+    //     highScoreNumbers[units].bounds.x = 180;
 
-        renderSprite(highScoreNumberTens[tens]);
-        renderSprite(highScoreNumbers[units]);
-    }
+    //     renderSprite(highScoreNumberTens[tens]);
+    //     renderSprite(highScoreNumbers[units]);
+    // }
 
     if (score < 10)
     {
@@ -317,11 +317,11 @@ void renderTopScreen()
 
     // SDL_RenderCopy(renderer, highScoreTexture, NULL, &highScoreBounds);
 
-    for (Vector2 &groundPosition : groundPositions)
-    {
-        groundSprite.bounds.x = groundPosition.x;
-        renderSprite(groundSprite);
-    }
+    // for (Vector2 &groundPosition : groundPositions)
+    // {
+    //     groundSprite.bounds.x = groundPosition.x;
+    //     renderSprite(groundSprite);
+    // }
 
     if (isGameOver)
     {
@@ -363,7 +363,7 @@ void loadNumbersSprites()
     {
         std::string completeString = std::to_string(i) + fileExtension;
 
-		Sprite numberSprite = loadSprite(completeString.c_str(), TOP_SCREEN_WIDTH / 2, 15, 32, 32);
+		Sprite numberSprite = loadSprite(completeString.c_str(), TOP_SCREEN_WIDTH / 2, 15, 24, 36);
 
         numbers.push_back(numberSprite);
         numberTens.push_back(numberSprite);
@@ -390,19 +390,19 @@ int main(int argc, char *argv[])
 	C2D_TextParse(&staticTexts[0], textStaticBuffer, "Game Paused");
 	C2D_TextOptimize(&staticTexts[0]);
 
-	playerSprite = loadSprite("yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 32, 32);
+	playerSprite = loadSprite("yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 34, 24);
 
 	highScore = loadHighScore();
 
-    upPipeSprite = loadSprite("pipe-green-180.t3x", TOP_SCREEN_WIDTH / 2, -220, 32, 32);
-    downPipeSprite = loadSprite("pipe-green.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 32, 32);
+    upPipeSprite = loadSprite("pipe-green-180.t3x", TOP_SCREEN_WIDTH / 2, -220, 52, 320);
+    downPipeSprite = loadSprite("pipe-green.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 52, 320);
 
-    startGameSprite = loadSprite("message.t3x", TOP_SCREEN_WIDTH / 2 - 75, 0, 32, 32);
-    backgroundSprite = loadSprite("background-day.t3x", 0, 0, 10, 10);
+    startGameSprite = loadSprite("message.t3x", TOP_SCREEN_WIDTH / 2 - 75, 0, 184, 267);
+    backgroundSprite = loadSprite("background-day.t3x", 0, 0, 288, 512);
 
-    groundSprite = loadSprite("base.t3x", 0, 0, 10, 10);
+    groundSprite = loadSprite("base.t3x", 0, 0, 336, 112);
 
-    groundYPosition = SCREEN_HEIGHT - groundSprite.bounds.h + 20;
+    groundYPosition = SCREEN_HEIGHT - groundSprite.bounds.h + 50;
 
     groundSprite.bounds.y = groundYPosition;
 
@@ -412,13 +412,11 @@ int main(int argc, char *argv[])
     groundPositions.push_back({groundSprite.bounds.w, groundYPosition});
     groundPositions.push_back({groundSprite.bounds.w * 2, groundYPosition});
 
-    playerSprite = loadSprite("yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 32, 32);
-
     player = Player{SCREEN_HEIGHT / 2, playerSprite, -10000, 500};
 
     loadNumbersSprites();
 
-    birdSprites = loadSprite("yellow-bird.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 32, 32);
+    birdSprites = loadSprite("yellow-bird.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 105, 24);
 
     birdsBounds = {0, 0, birdSprites.bounds.w / 3, birdSprites.bounds.h};
 
