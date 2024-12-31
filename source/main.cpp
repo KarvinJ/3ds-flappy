@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
 	C2D_TextParse(&staticTexts[0], textStaticBuffer, "Game Paused");
 	C2D_TextOptimize(&staticTexts[0]);
 
-	playerSprite = loadSprite("romfs:/gfx/yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 32, 32);
+	playerSprite = loadSprite("yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 32, 32);
 
 	// touchPosition touch;
 

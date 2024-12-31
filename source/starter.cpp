@@ -1,4 +1,5 @@
 #include "starter.h"
+#include <iostream>
 
 void drawRectangle(Rectangle &rectangle)
 {
@@ -13,10 +14,13 @@ bool hasCollision(Rectangle &rectangle, Rectangle &rectangle2)
 
 Sprite loadSprite(const char *filePath, float positionX, float positionY, float width, float height)
 {
-	Rectangle bounds = {positionX, positionY, 0, width, height};
+	std::string basePath = "romfs:/gfx/";
+	std::string fullPath = basePath + filePath;
 
-	C2D_SpriteSheet sheet = C2D_SpriteSheetLoad(filePath);
+	C2D_SpriteSheet sheet = C2D_SpriteSheetLoad(fullPath.c_str());
 	C2D_Image image = C2D_SpriteSheetGetImage(sheet, 0);
+
+	Rectangle bounds = {positionX, positionY, 0, width, height};
 
 	Sprite sprite = {image, bounds, sheet};
 
