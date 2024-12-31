@@ -81,16 +81,15 @@ std::vector<Pipe> pipes;
 
 float lastPipeSpawnTime;
 
+int getRandomNumberBetweenRange(int min, int max)
+{
+    return min + rand() / (RAND_MAX / (max - min + 1) + 1);
+}
+
 void generatePipes()
 {
-    //pipe position range 240 - 290
-    int upPipePosition = rand() % 290;
-
-//minimum upPipePosition.
-    if(upPipePosition < 240)
-        upPipePosition = 240;
-    
-    upPipePosition *= -1;
+    // the value needs to be negative.
+    int upPipePosition = -getRandomNumberBetweenRange(240, 290);
 
     Rectangle upPipeBounds = {TOP_SCREEN_WIDTH, (float)upPipePosition, 0, upPipeSprite.bounds.w, upPipeSprite.bounds.h, WHITE};
 
@@ -162,29 +161,29 @@ void resetGame(Player &player)
 // I'm replacing deltaTime for the value 10, just for now
 void update()
 {
-	int keyHeld = hidKeysHeld();
+    int keyHeld = hidKeysHeld();
 
-	if (keyHeld & KEY_LEFT && playerSprite.bounds.x > 0)
-	{
-		playerSprite.bounds.x -= PLAYER_SPEED;
-	}
+    if (keyHeld & KEY_LEFT && playerSprite.bounds.x > 0)
+    {
+        playerSprite.bounds.x -= PLAYER_SPEED;
+    }
 
-	else if (keyHeld & KEY_RIGHT && playerSprite.bounds.x < TOP_SCREEN_WIDTH - playerSprite.bounds.w)
-	{
-		playerSprite.bounds.x += PLAYER_SPEED;
-	}
+    else if (keyHeld & KEY_RIGHT && playerSprite.bounds.x < TOP_SCREEN_WIDTH - playerSprite.bounds.w)
+    {
+        playerSprite.bounds.x += PLAYER_SPEED;
+    }
 
-	else if (keyHeld & KEY_UP && playerSprite.bounds.y > 0)
-	{
-		playerSprite.bounds.y -= PLAYER_SPEED;
-	}
+    else if (keyHeld & KEY_UP && playerSprite.bounds.y > 0)
+    {
+        playerSprite.bounds.y -= PLAYER_SPEED;
+    }
 
-	else if (keyHeld & KEY_DOWN && playerSprite.bounds.y < SCREEN_HEIGHT - playerSprite.bounds.h)
-	{
-		playerSprite.bounds.y += PLAYER_SPEED;
-	}
+    else if (keyHeld & KEY_DOWN && playerSprite.bounds.y < SCREEN_HEIGHT - playerSprite.bounds.h)
+    {
+        playerSprite.bounds.y += PLAYER_SPEED;
+    }
 
-	startGameTimer++;
+    startGameTimer++;
 
     lastPipeSpawnTime++;
 
@@ -197,7 +196,7 @@ void update()
     {
         isGameOver = true;
     }
-    
+
     if (startGameTimer > 60)
     {
         player.y += gravity * 10;
@@ -211,9 +210,10 @@ void update()
         // Mix_PlayChannel(-1, dieSound, 0);
     }
 
-    // for (Vector2 &groundPosition : groundPositions)
-    // {
-    //     groundPosition.x -= 75 * 10;
+    // parallax
+    //  for (Vector2 &groundPosition : groundPositions)
+    //  {
+    //      groundPosition.x -= 75 * 10;
 
     //     if (groundPosition.x < -groundSprite.bounds.w)
     //     {
@@ -260,11 +260,11 @@ void update()
 
 void renderTopScreen()
 {
-	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-	C2D_TargetClear(topScreen, BLACK);
-	C2D_SceneBegin(topScreen);
+    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+    C2D_TargetClear(topScreen, BLACK);
+    C2D_SceneBegin(topScreen);
 
-	backgroundSprite.bounds.x = 0;
+    backgroundSprite.bounds.x = 0;
     renderSprite(backgroundSprite);
 
     backgroundSprite.bounds.x = backgroundSprite.bounds.w;
@@ -275,7 +275,7 @@ void renderTopScreen()
 
     groundSprite.bounds.x = groundSprite.bounds.w;
     renderSprite(groundSprite);
-    
+
     for (Pipe &pipe : pipes)
     {
         if (!pipe.isDestroyed)
@@ -327,31 +327,29 @@ void renderTopScreen()
         renderSprite(startGameSprite);
     }
 
-	renderSprite(playerSprite);
+    renderSprite(playerSprite);
 
-	C3D_FrameEnd(0);
+    C3D_FrameEnd(0);
 }
 
 void renderBottomScreen()
 {
-	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-	C2D_TargetClear(bottomScreen, BLACK);
-	C2D_SceneBegin(bottomScreen);
-
-	drawDynamicText("Total collisions: %d", 0, textDynamicBuffer, 150, 175, textSize);
+    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+    C2D_TargetClear(bottomScreen, BLACK);
+    C2D_SceneBegin(bottomScreen);
 
     if (isGamePaused)
-	{
-		C2D_DrawText(&staticTexts[0], C2D_AtBaseline | C2D_WithColor, 80, 60, 0, textSize, textSize, WHITE);
-	}
+    {
+        C2D_DrawText(&staticTexts[0], C2D_AtBaseline | C2D_WithColor, 80, 60, 0, textSize, textSize, WHITE);
+    }
 
-	C3D_FrameEnd(0);
+    C3D_FrameEnd(0);
 }
 
 void loadNumbersSprites()
 {
     std::string fileExtension = ".t3x";
-    
+
     numbers.reserve(10);
     numberTens.reserve(10);
 
@@ -362,7 +360,7 @@ void loadNumbersSprites()
     {
         std::string completeString = std::to_string(i) + fileExtension;
 
-		Sprite numberSprite = loadSprite(completeString.c_str(), TOP_SCREEN_WIDTH / 2, 15, 24, 36);
+        Sprite numberSprite = loadSprite(completeString.c_str(), TOP_SCREEN_WIDTH / 2, 15, 24, 36);
 
         numbers.push_back(numberSprite);
         numberTens.push_back(numberSprite);
@@ -374,24 +372,24 @@ void loadNumbersSprites()
 
 int main(int argc, char *argv[])
 {
-	romfsInit();
-	gfxInitDefault();
-	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
-	C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
-	C2D_Prepare();
+    romfsInit();
+    gfxInitDefault();
+    C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
+    C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
+    C2D_Prepare();
 
-	topScreen = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
-	bottomScreen = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
+    topScreen = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
+    bottomScreen = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 
-	textStaticBuffer = C2D_TextBufNew(1024);
-	textDynamicBuffer = C2D_TextBufNew(4096);
+    textStaticBuffer = C2D_TextBufNew(1024);
+    textDynamicBuffer = C2D_TextBufNew(4096);
 
-	C2D_TextParse(&staticTexts[0], textStaticBuffer, "Game Paused");
-	C2D_TextOptimize(&staticTexts[0]);
+    C2D_TextParse(&staticTexts[0], textStaticBuffer, "Game Paused");
+    C2D_TextOptimize(&staticTexts[0]);
 
-	playerSprite = loadSprite("yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 34, 24);
+    playerSprite = loadSprite("yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 34, 24);
 
-	highScore = loadHighScore();
+    highScore = loadHighScore();
 
     upPipeSprite = loadSprite("pipe-green-180.t3x", TOP_SCREEN_WIDTH / 2, -220, 52, 320);
     downPipeSprite = loadSprite("pipe-green.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 52, 320);
@@ -420,27 +418,27 @@ int main(int argc, char *argv[])
 
     srand(time(NULL));
 
-	// touchPosition touch;
+    // touchPosition touch;
 
-	while (aptMainLoop())
-	{
-		hidScanInput();
+    while (aptMainLoop())
+    {
+        hidScanInput();
 
-		// hidTouchRead(&touch);
+        // hidTouchRead(&touch);
 
-		// touch.px;
-		// touch.py;
+        // touch.px;
+        // touch.py;
 
-		int keyDown = hidKeysDown();
+        int keyDown = hidKeysDown();
 
-		if (keyDown & KEY_START)
-		{
-			isGamePaused = !isGamePaused;
-		}
-
-		if (!isGameOver && keyDown & KEY_A)
+        if (keyDown & KEY_START)
         {
-			// no deltaTime
+            isGamePaused = !isGamePaused;
+        }
+
+        if (!isGameOver && keyDown & KEY_A)
+        {
+            // no deltaTime
             gravity = player.impulse * 10;
 
             shouldRotateUp = true;
@@ -456,20 +454,20 @@ int main(int argc, char *argv[])
             resetGame(player);
         }
 
-		if (!isGameOver && !isGamePaused)
-		{
-			update();
-		}
+        if (!isGameOver && !isGamePaused)
+        {
+            update();
+        }
 
-		renderTopScreen();
+        renderTopScreen();
 
-		renderBottomScreen();
-	}
+        renderBottomScreen();
+    }
 
-	C2D_TextBufDelete(textDynamicBuffer);
-	C2D_TextBufDelete(textStaticBuffer);
+    C2D_TextBufDelete(textDynamicBuffer);
+    C2D_TextBufDelete(textStaticBuffer);
 
-	C2D_Fini();
-	C3D_Fini();
-	gfxExit();
+    C2D_Fini();
+    C3D_Fini();
+    gfxExit();
 }
