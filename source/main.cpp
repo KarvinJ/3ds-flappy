@@ -83,11 +83,12 @@ float lastPipeSpawnTime;
 
 void generatePipes()
 {
-    int upPipePosition = rand() % 220;
+    //pipe position range 240 - 290
+    int upPipePosition = rand() % 290;
 
 //minimum upPipePosition.
-    if(upPipePosition < 120)
-        upPipePosition = 120;
+    if(upPipePosition < 240)
+        upPipePosition = 240;
     
     upPipePosition *= -1;
 
@@ -210,15 +211,15 @@ void update()
         // Mix_PlayChannel(-1, dieSound, 0);
     }
 
-    for (Vector2 &groundPosition : groundPositions)
-    {
-        groundPosition.x -= 75 * 10;
+    // for (Vector2 &groundPosition : groundPositions)
+    // {
+    //     groundPosition.x -= 75 * 10;
 
-        if (groundPosition.x < -groundSprite.bounds.w)
-        {
-            groundPosition.x = groundSprite.bounds.w * 2;
-        }
-    }
+    //     if (groundPosition.x < -groundSprite.bounds.w)
+    //     {
+    //         groundPosition.x = groundSprite.bounds.w * 2;
+    //     }
+    // }
 
     for (auto actualPipe = pipes.begin(); actualPipe != pipes.end();)
     {
@@ -274,7 +275,7 @@ void renderTopScreen()
 
     groundSprite.bounds.x = groundSprite.bounds.w;
     renderSprite(groundSprite);
-
+    
     for (Pipe &pipe : pipes)
     {
         if (!pipe.isDestroyed)
@@ -309,19 +310,17 @@ void renderTopScreen()
         int tens = (int)(score / 10);
         int units = (score % 10);
 
-        numberTens[tens].bounds.x = TOP_SCREEN_WIDTH / 2 - 10;
+        numberTens[tens].bounds.x = TOP_SCREEN_WIDTH / 2 - 20;
 
         renderSprite(numberTens[tens]);
         renderSprite(numbers[units]);
     }
 
-    // SDL_RenderCopy(renderer, highScoreTexture, NULL, &highScoreBounds);
-
-    // for (Vector2 &groundPosition : groundPositions)
-    // {
-    //     groundSprite.bounds.x = groundPosition.x;
-    //     renderSprite(groundSprite);
-    // }
+    for (Vector2 &groundPosition : groundPositions)
+    {
+        groundSprite.bounds.x = groundPosition.x;
+        renderSprite(groundSprite);
+    }
 
     if (isGameOver)
     {
@@ -329,11 +328,6 @@ void renderTopScreen()
     }
 
 	renderSprite(playerSprite);
-
-	if (isGamePaused)
-	{
-		C2D_DrawText(&staticTexts[0], C2D_AtBaseline | C2D_WithColor, 110, 60, 0, textSize, textSize, WHITE);
-	}
 
 	C3D_FrameEnd(0);
 }
@@ -345,6 +339,11 @@ void renderBottomScreen()
 	C2D_SceneBegin(bottomScreen);
 
 	drawDynamicText("Total collisions: %d", 0, textDynamicBuffer, 150, 175, textSize);
+
+    if (isGamePaused)
+	{
+		C2D_DrawText(&staticTexts[0], C2D_AtBaseline | C2D_WithColor, 80, 60, 0, textSize, textSize, WHITE);
+	}
 
 	C3D_FrameEnd(0);
 }
@@ -410,7 +409,6 @@ int main(int argc, char *argv[])
 
     groundPositions.push_back({0, groundYPosition});
     groundPositions.push_back({groundSprite.bounds.w, groundYPosition});
-    groundPositions.push_back({groundSprite.bounds.w * 2, groundYPosition});
 
     player = Player{SCREEN_HEIGHT / 2, playerSprite, -10000, 500};
 
