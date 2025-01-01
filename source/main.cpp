@@ -284,22 +284,22 @@ void renderTopScreen()
         }
     }
 
-    // if (highScore < 10)
-    // {
-    //     highScoreNumbers[highScore].bounds.x = 180;
-    //     renderSprite(highScoreNumbers[highScore]);
-    // }
-    // else
-    // {
-    //     int tens = (int)(highScore / 10);
-    //     int units = (int)(highScore % 10);
+    if (highScore < 10)
+    {
+        highScoreNumbers[highScore].bounds.x = 50;
+        renderSprite(highScoreNumbers[highScore]);
+    }
+    else
+    {
+        int tens = (int)(highScore / 10);
+        int units = (int)(highScore % 10);
 
-    //     highScoreNumberTens[tens].bounds.x = 170;
-    //     highScoreNumbers[units].bounds.x = 180;
+        highScoreNumberTens[tens].bounds.x = 25;
+        highScoreNumbers[units].bounds.x = 50;
 
-    //     renderSprite(highScoreNumberTens[tens]);
-    //     renderSprite(highScoreNumbers[units]);
-    // }
+        renderSprite(highScoreNumberTens[tens]);
+        renderSprite(highScoreNumbers[units]);
+    }
 
     if (score < 10)
     {
@@ -310,7 +310,7 @@ void renderTopScreen()
         int tens = (int)(score / 10);
         int units = (score % 10);
 
-        numberTens[tens].bounds.x = TOP_SCREEN_WIDTH / 2 - 20;
+        numberTens[tens].bounds.x = TOP_SCREEN_WIDTH / 2 - 25;
 
         renderSprite(numberTens[tens]);
         renderSprite(numbers[units]);
