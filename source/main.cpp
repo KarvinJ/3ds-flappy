@@ -13,7 +13,7 @@ bool isGameOver;
 bool isGamePaused;
 float startGameTimer;
 
-bool shouldRotateUp = false;
+bool shouldRotateUp;
 float downRotationTimer = 0;
 float upRotationTimer = 0;
 
@@ -36,7 +36,8 @@ Rectangle birdsBounds;
 Sprite birdSprites;
 Sprite playerSprite;
 Sprite startGameSprite;
-Sprite backgroundSprite;
+Sprite topBackgroundSprite;
+Sprite bottomBackgroundSprite;
 Sprite groundSprite;
 
 Sprite upPipeSprite;
@@ -187,7 +188,7 @@ void update()
 
     lastPipeSpawnTime++;
 
-    if (lastPipeSpawnTime >= 120)
+    if (lastPipeSpawnTime >= 60)
     {
         generatePipes();
     }
@@ -210,22 +211,21 @@ void update()
         // Mix_PlayChannel(-1, dieSound, 0);
     }
 
-    // parallax
-    //  for (Vector2 &groundPosition : groundPositions)
-    //  {
-    //      groundPosition.x -= 75 * 10;
+    for (Vector2 &groundPosition : groundPositions)
+    {
+        groundPosition.x -= 3;
 
-    //     if (groundPosition.x < -groundSprite.bounds.w)
-    //     {
-    //         groundPosition.x = groundSprite.bounds.w * 2;
-    //     }
-    // }
+        if (groundPosition.x < -groundSprite.bounds.w)
+        {
+            groundPosition.x = groundSprite.bounds.w * 2;
+        }
+    }
 
     for (auto actualPipe = pipes.begin(); actualPipe != pipes.end();)
     {
         if (!actualPipe->isDestroyed)
         {
-            actualPipe->x -= 2;
+            actualPipe->x -= 3;
             actualPipe->sprite.bounds.x = actualPipe->x;
         }
 
@@ -264,11 +264,11 @@ void renderTopScreen()
     C2D_TargetClear(topScreen, BLACK);
     C2D_SceneBegin(topScreen);
 
-    backgroundSprite.bounds.x = 0;
-    renderSprite(backgroundSprite);
+    topBackgroundSprite.bounds.x = 0;
+    renderSprite(topBackgroundSprite);
 
-    backgroundSprite.bounds.x = backgroundSprite.bounds.w;
-    renderSprite(backgroundSprite);
+    topBackgroundSprite.bounds.x = topBackgroundSprite.bounds.w;
+    renderSprite(topBackgroundSprite);
 
     groundSprite.bounds.x = 0;
     renderSprite(groundSprite);
@@ -322,11 +322,6 @@ void renderTopScreen()
         renderSprite(groundSprite);
     }
 
-    if (isGameOver)
-    {
-        renderSprite(startGameSprite);
-    }
-
     renderSprite(playerSprite);
 
     C3D_FrameEnd(0);
@@ -337,6 +332,19 @@ void renderBottomScreen()
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
     C2D_TargetClear(bottomScreen, BLACK);
     C2D_SceneBegin(bottomScreen);
+
+    bottomBackgroundSprite.bounds.x = 0;
+    bottomBackgroundSprite.bounds.y = 0;
+    renderSprite(bottomBackgroundSprite);
+
+    bottomBackgroundSprite.bounds.x = bottomBackgroundSprite.bounds.w;
+    bottomBackgroundSprite.bounds.y = 0;
+    renderSprite(bottomBackgroundSprite);
+
+    if (isGameOver)
+    {
+        renderSprite(startGameSprite);
+    }
 
     if (isGamePaused)
     {
@@ -394,8 +402,10 @@ int main(int argc, char *argv[])
     upPipeSprite = loadSprite("pipe-green-180.t3x", TOP_SCREEN_WIDTH / 2, -220, 52, 320);
     downPipeSprite = loadSprite("pipe-green.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 52, 320);
 
-    startGameSprite = loadSprite("message.t3x", TOP_SCREEN_WIDTH / 2 - 75, 0, 184, 267);
-    backgroundSprite = loadSprite("background-day.t3x", 0, 0, 288, 512);
+    startGameSprite = loadSprite("message.t3x", BOTTOM_SCREEN_WIDTH / 2 - 90, -80, 184, 267);
+
+    topBackgroundSprite = loadSprite("background-day.t3x", 0, -250, 288, 512);
+    bottomBackgroundSprite = topBackgroundSprite;
 
     groundSprite = loadSprite("base.t3x", 0, 0, 336, 112);
 
@@ -407,6 +417,7 @@ int main(int argc, char *argv[])
 
     groundPositions.push_back({0, groundYPosition});
     groundPositions.push_back({groundSprite.bounds.w, groundYPosition});
+    groundPositions.push_back({groundSprite.bounds.w * 2, groundYPosition});
 
     player = Player{SCREEN_HEIGHT / 2, playerSprite, -10000, 500};
 
