@@ -90,7 +90,7 @@ int getRandomNumberBetweenRange(int min, int max)
 void generatePipes()
 {
     // the value needs to be negative.
-    int upPipePosition = -getRandomNumberBetweenRange(240, 290);
+    int upPipePosition = getRandomNumberBetweenRange(-290, -240);
 
     Rectangle upPipeBounds = {TOP_SCREEN_WIDTH, (float)upPipePosition, 0, upPipeSprite.bounds.w, upPipeSprite.bounds.h, WHITE};
 
