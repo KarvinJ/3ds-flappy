@@ -30,7 +30,8 @@ C2D_Text staticTexts[1];
 
 float textSize = 1.0f;
 
-const int PLAYER_SPEED = 10;
+Rectangle touchBounds = {0, 0, 0, 8, 8, WHITE};
+Rectangle bottomScreenBounds = {0, 0, 0, BOTTOM_SCREEN_WIDTH, SCREEN_HEIGHT, BLACK};
 
 Rectangle birdsBounds;
 Sprite birdSprites;
@@ -50,7 +51,6 @@ std::vector<Sprite> highScoreNumberTens;
 
 typedef struct
 {
-    float y;
     Sprite sprite;
     float impulse;
     float gravityIncrement;
@@ -152,9 +152,8 @@ void resetGame(Player &player)
     score = 0;
     startGameTimer = 0;
     initialAngle = 0;
-    player.y = SCREEN_HEIGHT / 2;
     player.sprite.bounds.x = TOP_SCREEN_WIDTH / 2;
-    player.sprite.bounds.y = TOP_SCREEN_WIDTH / 2;
+    player.sprite.bounds.y = SCREEN_HEIGHT / 2;
     gravity = 0;
     pipes.clear();
 }
@@ -162,28 +161,6 @@ void resetGame(Player &player)
 // I'm replacing deltaTime for the value 10, just for now
 void update()
 {
-    int keyHeld = hidKeysHeld();
-
-    if (keyHeld & KEY_LEFT && playerSprite.bounds.x > 0)
-    {
-        playerSprite.bounds.x -= PLAYER_SPEED;
-    }
-
-    else if (keyHeld & KEY_RIGHT && playerSprite.bounds.x < TOP_SCREEN_WIDTH - playerSprite.bounds.w)
-    {
-        playerSprite.bounds.x += PLAYER_SPEED;
-    }
-
-    else if (keyHeld & KEY_UP && playerSprite.bounds.y > 0)
-    {
-        playerSprite.bounds.y -= PLAYER_SPEED;
-    }
-
-    else if (keyHeld & KEY_DOWN && playerSprite.bounds.y < SCREEN_HEIGHT - playerSprite.bounds.h)
-    {
-        playerSprite.bounds.y += PLAYER_SPEED;
-    }
-
     startGameTimer++;
 
     lastPipeSpawnTime++;
@@ -193,16 +170,15 @@ void update()
         generatePipes();
     }
 
-    if (player.y < -player.sprite.bounds.h)
+    if (player.sprite.bounds.y < -player.sprite.bounds.h)
     {
         isGameOver = true;
     }
 
-    if (startGameTimer > 60)
+    if (startGameTimer > 40)
     {
-        player.y += gravity * 10;
-        player.sprite.bounds.y = player.y;
-        gravity += player.gravityIncrement * 10;
+        player.sprite.bounds.y += gravity;
+        gravity += player.gravityIncrement;
     }
 
     if (hasCollision(player.sprite.bounds, groundCollisionBounds))
@@ -322,7 +298,7 @@ void renderTopScreen()
         renderSprite(groundSprite);
     }
 
-    renderSprite(playerSprite);
+    renderSprite(player.sprite);
 
     C3D_FrameEnd(0);
 }
@@ -397,6 +373,8 @@ int main(int argc, char *argv[])
 
     playerSprite = loadSprite("yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 34, 24);
 
+    player = Player{playerSprite, -6, 1};
+
     highScore = loadHighScore();
 
     upPipeSprite = loadSprite("pipe-green-180.t3x", TOP_SCREEN_WIDTH / 2, -220, 52, 320);
@@ -419,8 +397,6 @@ int main(int argc, char *argv[])
     groundPositions.push_back({groundSprite.bounds.w, groundYPosition});
     groundPositions.push_back({groundSprite.bounds.w * 2, groundYPosition});
 
-    player = Player{SCREEN_HEIGHT / 2, playerSprite, -10000, 500};
-
     loadNumbersSprites();
 
     birdSprites = loadSprite("yellow-bird.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 105, 24);
@@ -429,16 +405,16 @@ int main(int argc, char *argv[])
 
     srand(time(NULL));
 
-    // touchPosition touch;
+    touchPosition touch;
 
     while (aptMainLoop())
     {
         hidScanInput();
 
-        // hidTouchRead(&touch);
+        hidTouchRead(&touch);
 
-        // touch.px;
-        // touch.py;
+        touchBounds.x = touch.px;
+        touchBounds.y = touch.py;
 
         int keyDown = hidKeysDown();
 
@@ -449,8 +425,7 @@ int main(int argc, char *argv[])
 
         if (!isGameOver && keyDown & KEY_A)
         {
-            // no deltaTime
-            gravity = player.impulse * 10;
+            gravity = player.impulse;
 
             shouldRotateUp = true;
             upRotationTimer = 1;
@@ -460,7 +435,8 @@ int main(int argc, char *argv[])
             // Mix_PlayChannel(-1, flapSound, 0);
         }
 
-        else if (isGameOver && keyDown & KEY_A)
+    //not working properly right now. 
+        else if (isGameOver && (keyDown & KEY_A /*|| hasCollision(bottomScreenBounds, touchBounds)*/))
         {
             resetGame(player);
         }
