@@ -13,5 +13,5 @@ I built everything using Windows 10
 * Install [devkitpro](https://devkitpro.org/wiki/Getting_Started#Unix-like_platforms)
 
 * Clone this repo
-* `cd 3ds-citro2d-starter`
+* `cd 3ds-flappy`
 * `make`

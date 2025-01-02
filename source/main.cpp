@@ -116,11 +116,40 @@ void generatePipes()
     lastPipeSpawnTime = 0;
 }
 
+void saveScore()
+{
+    std::string path = "high-score.txt";
+
+    std::ofstream highScores(path);
+
+    std::string scoreString = std::to_string(score);
+    highScores << scoreString;
+
+    highScores.close();
+}
+
 int loadHighScore()
 {
     std::string highScoreText;
 
-    std::ifstream highScores("high-score.txt");
+    std::string path = "high-score.txt";
+
+    std::ifstream highScores(path);
+
+    if (!highScores.is_open())
+    {
+        saveScore();
+
+        std::ifstream auxHighScores(path);
+
+        getline(auxHighScores, highScoreText);
+
+        highScores.close();
+
+        int highScore = stoi(highScoreText);
+
+        return highScore;
+    }
 
     getline(highScores, highScoreText);
 
@@ -131,24 +160,13 @@ int loadHighScore()
     return highScore;
 }
 
-void saveScore()
-{
-    std::ofstream highScores("high-score.txt");
-
-    std::string scoreString = std::to_string(score);
-    highScores << scoreString;
-
-    highScores.close();
-}
-
 void resetGame()
 {
     if (score > highScore)
     {
+        highScore = score;
         saveScore();
     }
-
-    highScore = loadHighScore();
 
     isGameOver = false;
     startGameTimer = 0;
@@ -315,8 +333,8 @@ void renderTopScreen()
 
     renderSprite(player.sprite);
 
-    //try this for img rotation check the doc the 5th param is the rotation in radians, don't know how that works yet.
-    //  C2D_DrawImageAtRotated(player.sprite.texture, player.sprite.bounds.x, player.sprite.bounds.y, 0, 0, NULL, 1, 1); 	
+    // try this for img rotation check the doc the 5th param is the rotation in radians, don't know how that works yet.
+    //   C2D_DrawImageAtRotated(player.sprite.texture, player.sprite.bounds.x, player.sprite.bounds.y, 0, 0, NULL, 1, 1);
 
     C3D_FrameEnd(0);
 }
