@@ -23,8 +23,6 @@ int score = 0;
 float initialAngle = 0;
 int highScore;
 
-C2D_TextBuf textDynamicBuffer;
-
 C2D_TextBuf textStaticBuffer;
 C2D_Text staticTexts[1];
 
@@ -35,7 +33,6 @@ Rectangle bottomScreenBounds = {10, 10, 0, BOTTOM_SCREEN_WIDTH, SCREEN_HEIGHT, B
 
 Rectangle birdsBounds;
 Sprite birdSprites;
-Sprite playerSprite;
 Sprite startGameSprite;
 Sprite topBackgroundSprite;
 Sprite bottomBackgroundSprite;
@@ -410,14 +407,12 @@ int main(int argc, char *argv[])
     bottomScreen = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 
     textStaticBuffer = C2D_TextBufNew(1024);
-    textDynamicBuffer = C2D_TextBufNew(4096);
-
     C2D_TextParse(&staticTexts[0], textStaticBuffer, "Game Paused");
     C2D_TextOptimize(&staticTexts[0]);
 
     loadNumbersSprites();
 
-    playerSprite = loadSprite("yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 34, 24);
+    Sprite playerSprite = loadSprite("yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 34, 24);
 
     player = Player{playerSprite, -6, 1};
 
@@ -493,8 +488,37 @@ int main(int argc, char *argv[])
         renderBottomScreen();
     }
 
-    C2D_TextBufDelete(textDynamicBuffer);
     C2D_TextBufDelete(textStaticBuffer);
+
+    C2D_SpriteSheetFree(birdSprites.sheet);
+    C2D_SpriteSheetFree(startGameSprite.sheet);
+    C2D_SpriteSheetFree(topBackgroundSprite.sheet);
+    C2D_SpriteSheetFree(bottomBackgroundSprite.sheet);
+    C2D_SpriteSheetFree(upPipeSprite.sheet);
+    C2D_SpriteSheetFree(downPipeSprite.sheet);
+    C2D_SpriteSheetFree(groundSprite.sheet);
+    C2D_SpriteSheetFree(playerSprite.sheet);
+    C2D_SpriteSheetFree(player.sprite.sheet);
+
+    for (Sprite &number : numbers)
+    {
+        C2D_SpriteSheetFree(number.sheet);
+    }
+
+    for (Sprite &number : numberTens)
+    {
+        C2D_SpriteSheetFree(number.sheet);
+    }
+
+    for (Sprite &number : highScoreNumbers)
+    {
+        C2D_SpriteSheetFree(number.sheet);
+    }
+
+    for (Sprite &number : highScoreNumberTens)
+    {
+        C2D_SpriteSheetFree(number.sheet);
+    }
 
     C2D_Fini();
     C3D_Fini();
