@@ -315,6 +315,9 @@ void renderTopScreen()
 
     renderSprite(player.sprite);
 
+    //try this for img rotation check the doc the 5th param is the rotation in radians, don't know how that works yet.
+    //  C2D_DrawImageAtRotated(player.sprite.texture, player.sprite.bounds.x, player.sprite.bounds.y, 0, 0, NULL, 1, 1); 	
+
     C3D_FrameEnd(0);
 }
 
