@@ -264,6 +264,11 @@ void update()
     }
 }
 
+void renderAndRotateSprite(Sprite &sprite, float rotation)
+{
+    C2D_DrawImageAtRotated(sprite.texture, sprite.bounds.x, sprite.bounds.y, 0, rotation, NULL, 1, 1);
+}
+
 void renderTopScreen()
 {
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
@@ -330,9 +335,9 @@ void renderTopScreen()
 
     renderSprite(player.sprite);
 
-    // try this for img rotation check the doc the 5th param is the rotation in radians, don't know how that works yet.
-    //   C2D_DrawImageAtRotated(player.sprite.texture, player.sprite.bounds.x, player.sprite.bounds.y, 0, 0, NULL, 1, 1);
-
+// check why the bounds is not in the same place as the image.
+    // renderAndRotateSprite(player.sprite, 0.6f);
+    
     C3D_FrameEnd(0);
 }
 
