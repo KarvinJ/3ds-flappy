@@ -72,13 +72,13 @@ std::vector<Vector2> groundPositions;
 
 typedef struct
 {
-    float x;
     Sprite sprite;
     bool isBehind;
     bool isDestroyed;
 } Pipe;
 
 std::vector<Pipe> pipes;
+std::vector<Pipe> bottomScreenPipes;
 
 float lastPipeSpawnTime;
 
@@ -96,19 +96,22 @@ void generatePipes()
 
     Sprite upSprite = {upPipeSprite.texture, upPipeBounds};
 
-    Pipe upPipe = {TOP_SCREEN_WIDTH, upSprite, false, false};
+    Pipe upPipe = {upSprite, false, false};
 
-    // gap size = 40.
     int downPipePosition = upPipePosition + upPipeSprite.bounds.h + 75;
 
     Rectangle downPipeBounds = {TOP_SCREEN_WIDTH, (float)downPipePosition, 0, downPipeSprite.bounds.w, downPipeSprite.bounds.h, WHITE};
 
     Sprite downSprite = {downPipeSprite.texture, downPipeBounds};
 
-    Pipe downPipe = {TOP_SCREEN_WIDTH, downSprite, false, false};
+    Pipe downPipe = {downSprite, false, false};
 
     pipes.push_back(upPipe);
     pipes.push_back(downPipe);
+
+    downPipe.sprite.bounds.x = BOTTOM_SCREEN_WIDTH + 40;
+    downPipe.sprite.bounds.y = -25;
+    bottomScreenPipes.push_back(downPipe);
 
     lastPipeSpawnTime = 0;
 }
@@ -156,6 +159,7 @@ void resetGame()
     player.sprite.bounds.y = SCREEN_HEIGHT / 2;
     gravity = 0;
     pipes.clear();
+    bottomScreenPipes.clear();
 }
 
 // I'm replacing deltaTime for the value 10, just for now
@@ -199,11 +203,7 @@ void update()
 
     for (auto actualPipe = pipes.begin(); actualPipe != pipes.end();)
     {
-        if (!actualPipe->isDestroyed)
-        {
-            actualPipe->x -= 3;
-            actualPipe->sprite.bounds.x = actualPipe->x;
-        }
+        actualPipe->sprite.bounds.x -= 3;
 
         if (hasCollision(player.sprite.bounds, actualPipe->sprite.bounds))
         {
@@ -226,6 +226,21 @@ void update()
         {
             actualPipe->isDestroyed = true;
             pipes.erase(actualPipe);
+        }
+        else
+        {
+            actualPipe++;
+        }
+    }
+
+    for (auto actualPipe = bottomScreenPipes.begin(); actualPipe != bottomScreenPipes.end();)
+    {
+        actualPipe->sprite.bounds.x -= 3;
+
+        if (actualPipe->sprite.bounds.x < -actualPipe->sprite.bounds.w)
+        {
+            actualPipe->isDestroyed = true;
+            bottomScreenPipes.erase(actualPipe);
         }
         else
         {
@@ -317,6 +332,14 @@ void renderBottomScreen()
     bottomBackgroundSprite.bounds.y = 0;
     renderSprite(bottomBackgroundSprite);
 
+    for (Pipe &pipe : bottomScreenPipes)
+    {
+        if (!pipe.isDestroyed)
+        {
+            renderSprite(pipe.sprite);
+        }
+    }
+
     if (isGameOver)
     {
         renderSprite(startGameSprite);
@@ -371,6 +394,8 @@ int main(int argc, char *argv[])
     C2D_TextParse(&staticTexts[0], textStaticBuffer, "Game Paused");
     C2D_TextOptimize(&staticTexts[0]);
 
+    loadNumbersSprites();
+
     playerSprite = loadSprite("yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 34, 24);
 
     player = Player{playerSprite, -6, 1};
@@ -396,8 +421,6 @@ int main(int argc, char *argv[])
     groundPositions.push_back({0, groundYPosition});
     groundPositions.push_back({groundSprite.bounds.w, groundYPosition});
     groundPositions.push_back({groundSprite.bounds.w * 2, groundYPosition});
-
-    loadNumbersSprites();
 
     birdSprites = loadSprite("yellow-bird.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 105, 24);
 
@@ -431,7 +454,6 @@ int main(int argc, char *argv[])
             upRotationTimer = 1;
             downRotationTimer = 0;
             initialAngle = -20;
-
             // Mix_PlayChannel(-1, flapSound, 0);
         }
 
