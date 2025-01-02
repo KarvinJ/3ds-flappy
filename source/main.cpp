@@ -31,7 +31,7 @@ C2D_Text staticTexts[1];
 float textSize = 1.0f;
 
 Rectangle touchBounds = {0, 0, 0, 8, 8, WHITE};
-Rectangle bottomScreenBounds = {0, 0, 0, BOTTOM_SCREEN_WIDTH, SCREEN_HEIGHT, BLACK};
+Rectangle bottomScreenBounds = {10, 10, 0, BOTTOM_SCREEN_WIDTH, SCREEN_HEIGHT, BLACK};
 
 Rectangle birdsBounds;
 Sprite birdSprites;
@@ -138,7 +138,7 @@ void saveScore()
     highScores.close();
 }
 
-void resetGame(Player &player)
+void resetGame()
 {
     if (score > highScore)
     {
@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
             isGamePaused = !isGamePaused;
         }
 
-        if (!isGameOver && keyDown & KEY_A)
+        if (!isGameOver && (keyDown & KEY_A || hasCollision(bottomScreenBounds, touchBounds)))
         {
             gravity = player.impulse;
 
@@ -435,10 +435,9 @@ int main(int argc, char *argv[])
             // Mix_PlayChannel(-1, flapSound, 0);
         }
 
-    //not working properly right now. 
-        else if (isGameOver && (keyDown & KEY_A /*|| hasCollision(bottomScreenBounds, touchBounds)*/))
+        else if (isGameOver && (keyDown & KEY_A || hasCollision(bottomScreenBounds, touchBounds)))
         {
-            resetGame(player);
+            resetGame();
         }
 
         if (!isGameOver && !isGamePaused)
