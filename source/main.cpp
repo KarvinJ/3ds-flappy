@@ -373,8 +373,6 @@ void renderTopScreen()
 
     renderAndRotateSprite(player.sprite, initialAngle);
 
-    // initialAngle += 0.05;
-
     if (startGameTimer > 40)
     {
         rendeBirdRotation();
