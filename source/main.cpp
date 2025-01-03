@@ -272,7 +272,7 @@ void renderAndRotateSprite(Sprite &sprite, float rotation)
     C2D_DrawImageAtRotated(player.sprite.texture, positionX, positionY, player.sprite.bounds.z, rotation, NULL, 1, 1);
 }
 
-void rendeBirdRotation()
+void renderBirdRotation()
 {
     downRotationTimer++;
 
@@ -375,7 +375,7 @@ void renderTopScreen()
 
     if (startGameTimer > 40)
     {
-        rendeBirdRotation();
+        renderBirdRotation();
     }
     else
     {
