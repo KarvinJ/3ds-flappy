@@ -14,19 +14,14 @@ bool isGamePaused;
 float startGameTimer;
 
 bool shouldRotateUp;
-float downRotationTimer = 0;
-float upRotationTimer = 0;
+float downRotationTimer;
+float upRotationTimer;
 
-float gravity = 0;
+float gravity;
 
-int score = 0;
-float initialAngle = 0;
+float initialAngle;
+int score;
 int highScore;
-
-C2D_TextBuf textStaticBuffer;
-C2D_Text staticTexts[1];
-
-float textSize = 1.0f;
 
 Rectangle touchBounds = {0, 0, 0, 8, 8, WHITE};
 Rectangle bottomScreenBounds = {10, 10, 0, BOTTOM_SCREEN_WIDTH, SCREEN_HEIGHT, BLACK};
@@ -54,8 +49,6 @@ typedef struct
 } Player;
 
 Player player;
-
-float groundYPosition;
 
 Rectangle groundCollisionBounds;
 
@@ -166,6 +159,7 @@ void resetGame()
     }
 
     isGameOver = false;
+    isGamePaused = false;
     startGameTimer = 0;
     score = 0;
     initialAngle = 0;
@@ -407,14 +401,9 @@ void renderBottomScreen()
         }
     }
 
-    if (isGameOver)
+    if (isGamePaused || isGameOver)
     {
         renderSprite(startGameSprite);
-    }
-
-    if (isGamePaused)
-    {
-        C2D_DrawText(&staticTexts[0], C2D_AtBaseline | C2D_WithColor, 80, 60, 0, textSize, textSize, WHITE);
     }
 
     C3D_FrameEnd(0);
@@ -455,14 +444,9 @@ int main(int argc, char *argv[])
     topScreen = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     bottomScreen = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 
-    textStaticBuffer = C2D_TextBufNew(1024);
-    C2D_TextParse(&staticTexts[0], textStaticBuffer, "Game Paused");
-    C2D_TextOptimize(&staticTexts[0]);
-
     loadNumbersSprites();
 
     Sprite playerSprite = loadSprite("yellowbird-midflap.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 34, 24);
-
     player = Player{playerSprite, -6, 1};
 
     highScore = loadHighScore();
@@ -477,7 +461,7 @@ int main(int argc, char *argv[])
 
     groundSprite = loadSprite("base.t3x", 0, 0, 336, 112);
 
-    groundYPosition = SCREEN_HEIGHT - groundSprite.bounds.h + 50;
+    float groundYPosition = SCREEN_HEIGHT - groundSprite.bounds.h + 50;
 
     groundSprite.bounds.y = groundYPosition;
 
@@ -506,7 +490,7 @@ int main(int argc, char *argv[])
 
         int keyDown = hidKeysDown();
 
-        if (keyDown & KEY_START)
+        if (keyDown & KEY_START || (isGamePaused && hasCollision(bottomScreenBounds, touchBounds)))
         {
             isGamePaused = !isGamePaused;
         }
@@ -536,8 +520,6 @@ int main(int argc, char *argv[])
 
         renderBottomScreen();
     }
-
-    C2D_TextBufDelete(textStaticBuffer);
 
     C2D_SpriteSheetFree(birdSprites.sheet);
     C2D_SpriteSheetFree(startGameSprite.sheet);
