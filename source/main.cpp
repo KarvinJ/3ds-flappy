@@ -168,7 +168,6 @@ void resetGame()
     isGameOver = false;
     startGameTimer = 0;
     score = 0;
-    startGameTimer = 0;
     initialAngle = 0;
     player.sprite.bounds.x = TOP_SCREEN_WIDTH / 2;
     player.sprite.bounds.y = SCREEN_HEIGHT / 2;
@@ -266,11 +265,46 @@ void update()
 
 void renderAndRotateSprite(Sprite &sprite, float rotation)
 {
-    //need to make this adjustment, because the	x and y coordinates place the image in the center, instead of the top-left corner. 
+    // need to make this adjustment, because the	x and y coordinates place the image in the center, instead of the top-left corner.
     float positionX = player.sprite.bounds.x + player.sprite.bounds.w / 2;
     float positionY = player.sprite.bounds.y + player.sprite.bounds.h / 2;
 
     C2D_DrawImageAtRotated(player.sprite.texture, positionX, positionY, player.sprite.bounds.z, rotation, NULL, 1, 1);
+}
+
+void rendeBirdRotation()
+{
+    downRotationTimer++;
+
+    if (downRotationTimer < 10)
+    {
+        renderAndRotateSprite(player.sprite, initialAngle);
+    }
+
+    if (shouldRotateUp)
+    {
+        if (upRotationTimer > 0)
+        {
+            upRotationTimer--;
+        }
+
+        if (upRotationTimer <= 0)
+        {
+            shouldRotateUp = false;
+        }
+
+        renderAndRotateSprite(player.sprite, initialAngle);
+    }
+
+    if (downRotationTimer > 10)
+    {
+        if (initialAngle <= 1.570796 && !isGameOver && !isGamePaused)
+        {
+            initialAngle += 0.1;
+        }
+
+        renderAndRotateSprite(player.sprite, initialAngle);
+    }
 }
 
 void renderTopScreen()
@@ -337,7 +371,18 @@ void renderTopScreen()
         renderSprite(groundSprite);
     }
 
-    renderAndRotateSprite(player.sprite, 0.6f);
+    renderAndRotateSprite(player.sprite, initialAngle);
+
+    // initialAngle += 0.05;
+
+    if (startGameTimer > 40)
+    {
+        rendeBirdRotation();
+    }
+    else
+    {
+        renderAndRotateSprite(player.sprite, initialAngle);
+    }
 
     C3D_FrameEnd(0);
 }
@@ -475,7 +520,7 @@ int main(int argc, char *argv[])
             shouldRotateUp = true;
             upRotationTimer = 1;
             downRotationTimer = 0;
-            initialAngle = -20;
+            initialAngle = -0.3490659;
             // Mix_PlayChannel(-1, flapSound, 0);
         }
 
