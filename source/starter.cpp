@@ -29,7 +29,7 @@ Sprite loadSprite(const char *filePath, float positionX, float positionY, float 
 
 void renderSprite(Sprite &sprite)
 {
-	C2D_DrawImageAt(sprite.texture, sprite.bounds.x, sprite.bounds.y, 0, NULL, 1, 1);
+	C2D_DrawImageAt(sprite.texture, sprite.bounds.x, sprite.bounds.y, sprite.bounds.z, NULL, 1, 1);
 }
 
 void drawDynamicText(const char *textFormat, int value, C2D_TextBuf &dynamicBuffer, int positionX, int positionY, float textSize)
