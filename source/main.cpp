@@ -266,7 +266,11 @@ void update()
 
 void renderAndRotateSprite(Sprite &sprite, float rotation)
 {
-    C2D_DrawImageAtRotated(sprite.texture, sprite.bounds.x, sprite.bounds.y, 0, rotation, NULL, 1, 1);
+    //need to make this adjustment, because the	x and y coordinates place the image in the center, instead of the top-left corner. 
+    float positionX = player.sprite.bounds.x + player.sprite.bounds.w / 2;
+    float positionY = player.sprite.bounds.y + player.sprite.bounds.h / 2;
+
+    C2D_DrawImageAtRotated(player.sprite.texture, positionX, positionY, player.sprite.bounds.z, rotation, NULL, 1, 1);
 }
 
 void renderTopScreen()
@@ -333,11 +337,8 @@ void renderTopScreen()
         renderSprite(groundSprite);
     }
 
-    renderSprite(player.sprite);
+    renderAndRotateSprite(player.sprite, 0.6f);
 
-// check why the bounds is not in the same place as the image.
-    // renderAndRotateSprite(player.sprite, 0.6f);
-    
     C3D_FrameEnd(0);
 }
 

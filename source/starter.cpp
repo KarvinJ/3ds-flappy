@@ -20,7 +20,7 @@ Sprite loadSprite(const char *filePath, float positionX, float positionY, float 
 	C2D_SpriteSheet sheet = C2D_SpriteSheetLoad(fullPath.c_str());
 	C2D_Image image = C2D_SpriteSheetGetImage(sheet, 0);
 
-	Rectangle bounds = {positionX, positionY, 0, width, height};
+	Rectangle bounds = {positionX, positionY, 0, width, height, WHITE};
 
 	Sprite sprite = {image, bounds, sheet};
 
