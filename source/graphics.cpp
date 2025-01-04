@@ -45,6 +45,15 @@ void drawDynamicText(const char *textFormat, int value, C2D_TextBuf &dynamicBuff
 	C2D_TextBufClear(dynamicBuffer);
 }
 
+void drawAndRotateImage(Sprite &sprite, float rotation)
+{
+    // need to make this adjustment, because the x and y coordinates place the image in the center, instead of the top-left corner.
+    float positionX = sprite.bounds.x + sprite.bounds.w / 2;
+    float positionY = sprite.bounds.y + sprite.bounds.h / 2;
+
+    C2D_DrawImageAtRotated(sprite.texture, positionX, positionY, sprite.bounds.z, rotation, NULL, 1, 1);
+}
+
 void handleSpriteRotation(C2D_Sprite *sprites, Rectangle &spriteBounds, size_t spritesQuantity, float rotationAngle)
 {
     for (size_t index = 0; index < spritesQuantity; index++)
@@ -54,15 +63,6 @@ void handleSpriteRotation(C2D_Sprite *sprites, Rectangle &spriteBounds, size_t s
         // [in]	sprite	Pointer to sprite [in]	radians	Amount to rotate in radians, if I want to use degrees I can use C2D_SpriteRotateDegrees for the angle
         C2D_SpriteSetRotation(&sprites[index], rotationAngle);
     }
-}
-
-void drawAndRotateImage(Sprite &sprite, float rotation)
-{
-    // need to make this adjustment, because the x and y coordinates place the image in the center, instead of the top-left corner.
-    float positionX = sprite.bounds.x + sprite.bounds.w / 2;
-    float positionY = sprite.bounds.y + sprite.bounds.h / 2;
-
-    C2D_DrawImageAtRotated(sprite.texture, positionX, positionY, sprite.bounds.z, rotation, NULL, 1, 1);
 }
 
 void drawSpriteAnimation(C2D_Sprite *sprites, SpriteRefreshInfo &refreshInfo, SpriteFrameInfo &frameInfo)

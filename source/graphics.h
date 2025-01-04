@@ -56,8 +56,8 @@ void renderSprite(Sprite &sprite);
 
 void drawDynamicText(const char *textFormat, int value, C2D_TextBuf &dynamicBuffer, int positionX, int positionY, float textSize);
 
-void handleSpriteRotation(C2D_Sprite *sprites, Rectangle &spriteBounds, size_t spritesQuantity, float rotationAngle);
-
 void drawAndRotateImage(Sprite &sprite, float rotation);
+
+void handleSpriteRotation(C2D_Sprite *sprites, Rectangle &spriteBounds, size_t spritesQuantity, float rotationAngle);
 
 void drawSpriteAnimation(C2D_Sprite *sprites, SpriteRefreshInfo &refreshInfo, SpriteFrameInfo &frameInfo);
