@@ -350,29 +350,29 @@ void renderTopScreen()
     C2D_SceneBegin(topScreen);
 
     topBackgroundSprite.bounds.x = 0;
-    renderSprite(topBackgroundSprite);
+    drawSprite(topBackgroundSprite);
 
     topBackgroundSprite.bounds.x = topBackgroundSprite.bounds.w;
-    renderSprite(topBackgroundSprite);
+    drawSprite(topBackgroundSprite);
 
     groundSprite.bounds.x = 0;
-    renderSprite(groundSprite);
+    drawSprite(groundSprite);
 
     groundSprite.bounds.x = groundSprite.bounds.w;
-    renderSprite(groundSprite);
+    drawSprite(groundSprite);
 
     for (Pipe &pipe : pipes)
     {
         if (!pipe.isDestroyed)
         {
-            renderSprite(pipe.sprite);
+            drawSprite(pipe.sprite);
         }
     }
 
     if (highScore < 10)
     {
         highScoreNumbers[highScore].bounds.x = 50;
-        renderSprite(highScoreNumbers[highScore]);
+        drawSprite(highScoreNumbers[highScore]);
     }
     else
     {
@@ -382,13 +382,13 @@ void renderTopScreen()
         highScoreNumberTens[tens].bounds.x = 25;
         highScoreNumbers[units].bounds.x = 50;
 
-        renderSprite(highScoreNumberTens[tens]);
-        renderSprite(highScoreNumbers[units]);
+        drawSprite(highScoreNumberTens[tens]);
+        drawSprite(highScoreNumbers[units]);
     }
 
     if (score < 10)
     {
-        renderSprite(numbers[score]);
+        drawSprite(numbers[score]);
     }
     else
     {
@@ -397,14 +397,14 @@ void renderTopScreen()
 
         numberTens[tens].bounds.x = TOP_SCREEN_WIDTH / 2 - 25;
 
-        renderSprite(numberTens[tens]);
-        renderSprite(numbers[units]);
+        drawSprite(numberTens[tens]);
+        drawSprite(numbers[units]);
     }
 
     for (Vector2 &groundPosition : groundPositions)
     {
         groundSprite.bounds.x = groundPosition.x;
-        renderSprite(groundSprite);
+        drawSprite(groundSprite);
     }
 
     drawSpriteAnimation(birdSprites, refreshInfo, frameInfo);
@@ -420,23 +420,23 @@ void renderBottomScreen()
 
     bottomBackgroundSprite.bounds.x = 0;
     bottomBackgroundSprite.bounds.y = 0;
-    renderSprite(bottomBackgroundSprite);
+    drawSprite(bottomBackgroundSprite);
 
     bottomBackgroundSprite.bounds.x = bottomBackgroundSprite.bounds.w;
     bottomBackgroundSprite.bounds.y = 0;
-    renderSprite(bottomBackgroundSprite);
+    drawSprite(bottomBackgroundSprite);
 
     for (Pipe &pipe : bottomScreenPipes)
     {
         if (!pipe.isDestroyed)
         {
-            renderSprite(pipe.sprite);
+            drawSprite(pipe.sprite);
         }
     }
 
     if (isGamePaused || isGameOver)
     {
-        renderSprite(startGameSprite);
+        drawSprite(startGameSprite);
     }
 
     C3D_FrameEnd(0);

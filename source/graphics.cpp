@@ -27,7 +27,7 @@ Sprite loadSprite(const char *filePath, float positionX, float positionY, float 
 	return sprite;
 }
 
-void renderSprite(Sprite &sprite)
+void drawSprite(Sprite &sprite)
 {
 	C2D_DrawImageAt(sprite.texture, sprite.bounds.x, sprite.bounds.y, sprite.bounds.z, NULL, 1, 1);
 }

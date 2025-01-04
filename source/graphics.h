@@ -52,7 +52,7 @@ bool hasCollision(Rectangle &rectangle, Rectangle &rectangle2);
 
 Sprite loadSprite(const char *filePath, float positionX, float positionY, float width, float height);
 
-void renderSprite(Sprite &sprite);
+void drawSprite(Sprite &sprite);
 
 void drawDynamicText(const char *textFormat, int value, C2D_TextBuf &dynamicBuffer, int positionX, int positionY, float textSize);
 
