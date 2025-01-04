@@ -2,7 +2,7 @@
 #include <vector>
 #include <fstream>
 
-#define ANIMATION_REFRESH_TIME_MIN 120 //  A minimum of the animation refresh time is 17ms
+#define ANIMATION_REFRESH_TIME_MIN 120 //  A minimum of the animation refresh time is 120ms if 60 fps then set to 17ms
 
 const int TOP_SCREEN_WIDTH = 400;
 const int BOTTOM_SCREEN_WIDTH = 320;
@@ -11,8 +11,8 @@ const int SCREEN_HEIGHT = 240;
 C3D_RenderTarget *topScreen = nullptr;
 C3D_RenderTarget *bottomScreen = nullptr;
 
-// when working with animation I need to use sprites.
-C2D_Sprite birdSprites2[3];
+// when working with animations I need to use sprites[].
+C2D_Sprite birdSprites[3];
 
 bool isGameOver;
 bool isGamePaused;
@@ -24,34 +24,33 @@ float upRotationTimer;
 
 float gravity;
 
-float initialAngle;
+float rotationAngle;
 int score;
 int highScore;
 
-typedef struct sprite_refresh_info
+typedef struct SpriteRefreshInfo
 {
-    uint64_t start;        ///< Start time
-    uint64_t stop;         ///< Lap time
-    uint64_t elapsed;      ///< Elapsed time (`start` - `stop`)
-    uint64_t refresh_time; ///< Next sprite update time [Unit: ms]
-} sprite_refresh_info_t;
+    uint64_t start;       ///< Start time
+    uint64_t stop;        ///< Lap time
+    uint64_t elapsed;     ///< Elapsed time (`start` - `stop`)
+    uint64_t refreshTime; ///< Next sprite update time [Unit: ms]
+} SpriteRefreshInfo;
 
-sprite_refresh_info_t refresh_info;
+SpriteRefreshInfo refreshInfo;
 
-typedef struct sprite_frame_info
+typedef struct SpriteFrameInfo
 {
-    int current_frame_index; ///< Current sprite ID number
-    size_t num_of_sprites;   ///< Number of sprites
-    bool loop_once;          ///< Sprite animation loop information
-} sprite_frame_info_t;
+    unsigned int currentFrameIndex; ///< Current sprite ID number
+    size_t SpritesQuantity;  ///< Number of sprites
+    bool shouldLoopOnce;     ///< Sprite animation loop information
+} SpriteFrameInfo;
 
-sprite_frame_info_t frame_info;
+SpriteFrameInfo frameInfo;
 
 Rectangle touchBounds = {0, 0, 0, 8, 8, WHITE};
 Rectangle bottomScreenBounds = {10, 10, 0, BOTTOM_SCREEN_WIDTH, SCREEN_HEIGHT, BLACK};
 
 Rectangle birdsBounds;
-Sprite birdSprites;
 Sprite startGameSprite;
 Sprite topBackgroundSprite;
 Sprite bottomBackgroundSprite;
@@ -186,12 +185,58 @@ void resetGame()
     isGamePaused = false;
     startGameTimer = 0;
     score = 0;
-    initialAngle = 0;
+    rotationAngle = 0;
     player.sprite.bounds.x = TOP_SCREEN_WIDTH / 2;
     player.sprite.bounds.y = SCREEN_HEIGHT / 2;
     gravity = 0;
     pipes.clear();
     bottomScreenPipes.clear();
+}
+
+void handledSpriteRotation(Rectangle &spriteBounds, size_t spritesQuantity, float rotationAngle)
+{
+    for (size_t index = 0; index < spritesQuantity; index++)
+    {
+        C2D_SpriteSetPos(&birdSprites[index], spriteBounds.x, spriteBounds.y);
+
+        // [in]	sprite	Pointer to sprite [in]	radians	Amount to rotate in radians, if I want to use degrees I can use C2D_SpriteRotateDegrees for the angle
+        C2D_SpriteSetRotation(&birdSprites[index], rotationAngle);
+    }
+}
+
+void handleBirdRotation()
+{
+    downRotationTimer++;
+
+    if (downRotationTimer < 10)
+    {
+        handledSpriteRotation(player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
+    }
+
+    if (shouldRotateUp)
+    {
+        if (upRotationTimer > 0)
+        {
+            upRotationTimer--;
+        }
+
+        if (upRotationTimer <= 0)
+        {
+            shouldRotateUp = false;
+        }
+
+        handledSpriteRotation(player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
+    }
+
+    if (downRotationTimer > 10)
+    {
+        if (rotationAngle <= 1.570796 && !isGameOver && !isGamePaused)
+        {
+            rotationAngle += 0.1;
+        }
+
+        handledSpriteRotation(player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
+    }
 }
 
 // I'm replacing deltaTime for the value 10, just for now
@@ -279,9 +324,20 @@ void update()
             actualPipe++;
         }
     }
+
+    handledSpriteRotation(player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
+
+    if (startGameTimer > 40)
+    {
+        handleBirdRotation();
+    }
+    else
+    {
+        handledSpriteRotation(player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
+    }
 }
 
-void renderAndRotateSprite(Sprite &sprite, float rotation)
+void drawAndRotateImage(Sprite &sprite, float rotation)
 {
     // need to make this adjustment, because the	x and y coordinates place the image in the center, instead of the top-left corner.
     float positionX = player.sprite.bounds.x + player.sprite.bounds.w / 2;
@@ -290,58 +346,34 @@ void renderAndRotateSprite(Sprite &sprite, float rotation)
     C2D_DrawImageAtRotated(player.sprite.texture, positionX, positionY, player.sprite.bounds.z, rotation, NULL, 1, 1);
 }
 
-void renderBirdRotation()
+void drawSpriteAnimation()
 {
-    downRotationTimer++;
+    // Get an elapsed time
+    refreshInfo.stop = osGetTime();
+    refreshInfo.elapsed = refreshInfo.stop - refreshInfo.start;
 
-    if (downRotationTimer < 10)
+    // Check the elapsed time which is greater than or equal to the refresh time
+    if (refreshInfo.elapsed >= refreshInfo.refreshTime)
     {
-        for (size_t index = 0; index < frame_info.num_of_sprites; index++)
+        // Update next sprite
+        if (!frameInfo.shouldLoopOnce)
         {
-            // Set the position, and rotation of the object
-            C2D_SpriteSetPos(&birdSprites2[index], player.sprite.bounds.x, player.sprite.bounds.y);
-            C2D_SpriteSetRotation(&birdSprites2[index], initialAngle);
+            frameInfo.currentFrameIndex = (frameInfo.currentFrameIndex + 1) % frameInfo.SpritesQuantity;
+        }
+        else
+        {
+            if (frameInfo.currentFrameIndex < frameInfo.SpritesQuantity - 1)
+            {
+                frameInfo.currentFrameIndex++;
+            }
         }
 
-        // renderAndRotateSprite(player.sprite, initialAngle);
+        refreshInfo.start = osGetTime();
+        C2D_DrawSprite(&birdSprites[frameInfo.currentFrameIndex]);
     }
-
-    if (shouldRotateUp)
+    else
     {
-        if (upRotationTimer > 0)
-        {
-            upRotationTimer--;
-        }
-
-        if (upRotationTimer <= 0)
-        {
-            shouldRotateUp = false;
-        }
-
-        for (size_t index = 0; index < frame_info.num_of_sprites; index++)
-        {
-            // Set the position, and rotation of the object
-            C2D_SpriteSetPos(&birdSprites2[index], player.sprite.bounds.x, player.sprite.bounds.y);
-            C2D_SpriteSetRotation(&birdSprites2[index], initialAngle);
-        }
-
-        // renderAndRotateSprite(player.sprite, initialAngle);
-    }
-
-    if (downRotationTimer > 10)
-    {
-        if (initialAngle <= 1.570796 && !isGameOver && !isGamePaused)
-        {
-            initialAngle += 0.1;
-        }
-
-        for (size_t index = 0; index < frame_info.num_of_sprites; index++)
-        {
-            // Set the position, and rotation of the object
-            C2D_SpriteSetPos(&birdSprites2[index], player.sprite.bounds.x, player.sprite.bounds.y);
-            C2D_SpriteSetRotation(&birdSprites2[index], initialAngle);
-        }
-        // renderAndRotateSprite(player.sprite, initialAngle);
+        C2D_DrawSprite(&birdSprites[frameInfo.currentFrameIndex]);
     }
 }
 
@@ -409,64 +441,7 @@ void renderTopScreen()
         renderSprite(groundSprite);
     }
 
-    // change rotation logic to degrees. 
-
-    // object->rotation += object->rotation_velocity;
-
-    for (size_t index = 0; index < frame_info.num_of_sprites; index++)
-    {
-        // Set the position, and rotation of the object
-        C2D_SpriteSetPos(&birdSprites2[index], player.sprite.bounds.x, player.sprite.bounds.y);
-        C2D_SpriteSetRotation(&birdSprites2[index], initialAngle);
-    }
-
-    // renderAndRotateSprite(player.sprite, initialAngle);
-
-    if (startGameTimer > 40)
-    {
-        renderBirdRotation();
-    }
-    else
-    {
-        // object->rotation += object->rotation_velocity;
-
-        for (size_t index = 0; index < frame_info.num_of_sprites; index++)
-        {
-            // Set the position, and rotation of the object
-            C2D_SpriteSetPos(&birdSprites2[index], player.sprite.bounds.x, player.sprite.bounds.y);
-            C2D_SpriteSetRotation(&birdSprites2[index], initialAngle);
-        }
-
-        // renderAndRotateSprite(player.sprite, initialAngle);
-    }
-
-    // Get an elapsed time
-    refresh_info.stop = osGetTime();
-    refresh_info.elapsed = refresh_info.stop - refresh_info.start;
-
-    // Check the elapsed time which is greater than or equal to the refresh time
-    if (refresh_info.elapsed >= refresh_info.refresh_time)
-    {
-        // Update next sprite
-        if (frame_info.loop_once == false)
-        {
-            frame_info.current_frame_index = (frame_info.current_frame_index + 1) % frame_info.num_of_sprites;
-        }
-        else
-        {
-            if (frame_info.current_frame_index < frame_info.num_of_sprites - 1)
-            {
-                frame_info.current_frame_index++;
-            }
-        }
-        refresh_info.start = osGetTime();
-        C2D_DrawSprite(&birdSprites2[frame_info.current_frame_index]);
-    }
-    else
-    {
-        // Draw current sprite
-        C2D_DrawSprite(&birdSprites2[frame_info.current_frame_index]);
-    }
+    drawSpriteAnimation();
 
     C3D_FrameEnd(0);
 }
@@ -525,6 +500,41 @@ void loadNumbersSprites()
     }
 }
 
+void initializeSpriteAnimations(C2D_SpriteSheet &spriteSheet)
+{
+    frameInfo.SpritesQuantity = C2D_SpriteSheetCount(spriteSheet);
+
+    // Set the first sprite to the beginning of the spriteSheet
+    frameInfo.currentFrameIndex = 0;
+    frameInfo.shouldLoopOnce = false;
+
+    // init sprites
+    for (size_t index = 0; index < frameInfo.SpritesQuantity; index++)
+    {
+        // Load the spriteheet to each sprites (or frames)
+        C2D_SpriteFromSheet(&birdSprites[index], spriteSheet, index);
+        // Set the position, and rotation of the object
+        C2D_SpriteSetPos(&birdSprites[index], TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+        C2D_SpriteSetRotationDegrees(&birdSprites[index], 0);
+    }
+
+    // Set initial value
+    refreshInfo.start = osGetTime();
+    refreshInfo.elapsed = 0;
+
+    int refreshTime = 140;
+
+    // Set a desired sprite refresh time (ms)
+    if (refreshTime < ANIMATION_REFRESH_TIME_MIN)
+    {
+        refreshInfo.refreshTime = ANIMATION_REFRESH_TIME_MIN;
+    }
+    else
+    {
+        refreshInfo.refreshTime = refreshTime;
+    }
+}
+
 int main(int argc, char *argv[])
 {
     romfsInit();
@@ -536,46 +546,9 @@ int main(int argc, char *argv[])
     topScreen = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
     bottomScreen = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
 
-    C2D_SpriteSheet spritesheet = C2D_SpriteSheetLoad("romfs:/gfx/bird-sprites.t3x");
+    C2D_SpriteSheet birdsSpriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/bird-sprites.t3x");
 
-    // Store number of sprites information
-    frame_info.num_of_sprites = C2D_SpriteSheetCount(spritesheet);
-    // Set the first sprite to the beginning of the spritesheet
-    frame_info.current_frame_index = 0;
-
-    float positionX = 0;
-    float positionY = 0;
-    float pivotX = 0;
-    float pivotY = 0;
-
-    int refreshTime = 140;
-
-    frame_info.loop_once = false;
-
-    // init sprites
-    for (size_t index = 0; index < frame_info.num_of_sprites; index++)
-    {
-        // Load the spriteheet to each sprites (or frames)
-        C2D_SpriteFromSheet(&birdSprites2[index], spritesheet, index);
-        // Set the pivot, position, and rotation of the object
-        C2D_SpriteSetCenter(&birdSprites2[index], pivotX, pivotY);
-        C2D_SpriteSetPos(&birdSprites2[index], positionX, positionY);
-        C2D_SpriteSetRotationDegrees(&birdSprites2[index], 0);
-    }
-
-    // Set initial value
-    refresh_info.start = osGetTime();
-    refresh_info.elapsed = 0;
-
-    // Set a desired sprite refresh time (ms)
-    if (refreshTime < ANIMATION_REFRESH_TIME_MIN)
-    {
-        refresh_info.refresh_time = ANIMATION_REFRESH_TIME_MIN;
-    }
-    else
-    {
-        refresh_info.refresh_time = refreshTime;
-    }
+    initializeSpriteAnimations(birdsSpriteSheet);
 
     loadNumbersSprites();
 
@@ -604,10 +577,6 @@ int main(int argc, char *argv[])
     groundPositions.push_back({groundSprite.bounds.w, groundYPosition});
     groundPositions.push_back({groundSprite.bounds.w * 2, groundYPosition});
 
-    birdSprites = loadSprite("yellow-bird.t3x", TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 105, 24);
-
-    birdsBounds = {0, 0, birdSprites.bounds.w / 3, birdSprites.bounds.h};
-
     srand(time(NULL));
 
     touchPosition touch;
@@ -635,7 +604,7 @@ int main(int argc, char *argv[])
             shouldRotateUp = true;
             upRotationTimer = 1;
             downRotationTimer = 0;
-            initialAngle = -0.3490659;
+            rotationAngle = -0.3490659;
             // Mix_PlayChannel(-1, flapSound, 0);
         }
 
@@ -654,7 +623,7 @@ int main(int argc, char *argv[])
         renderBottomScreen();
     }
 
-    C2D_SpriteSheetFree(birdSprites.sheet);
+    C2D_SpriteSheetFree(birdsSpriteSheet);
     C2D_SpriteSheetFree(startGameSprite.sheet);
     C2D_SpriteSheetFree(topBackgroundSprite.sheet);
     C2D_SpriteSheetFree(bottomBackgroundSprite.sheet);
