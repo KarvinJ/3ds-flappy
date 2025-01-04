@@ -1,8 +1,6 @@
-#include "starter.h"
+#include "graphics.h"
 #include <vector>
 #include <fstream>
-
-#define ANIMATION_REFRESH_TIME_MIN 120 //  A minimum of the animation refresh time is 120ms if 60 fps then set to 17ms
 
 const int TOP_SCREEN_WIDTH = 400;
 const int BOTTOM_SCREEN_WIDTH = 320;
@@ -28,23 +26,7 @@ float rotationAngle;
 int score;
 int highScore;
 
-typedef struct SpriteRefreshInfo
-{
-    uint64_t start;       ///< Start time
-    uint64_t stop;        ///< Lap time
-    uint64_t elapsed;     ///< Elapsed time (`start` - `stop`)
-    uint64_t refreshTime; ///< Next sprite update time [Unit: ms]
-} SpriteRefreshInfo;
-
 SpriteRefreshInfo refreshInfo;
-
-typedef struct SpriteFrameInfo
-{
-    unsigned int currentFrameIndex; ///< Current sprite ID number
-    size_t SpritesQuantity;  ///< Number of sprites
-    bool shouldLoopOnce;     ///< Sprite animation loop information
-} SpriteFrameInfo;
-
 SpriteFrameInfo frameInfo;
 
 Rectangle touchBounds = {0, 0, 0, 8, 8, WHITE};
@@ -193,24 +175,13 @@ void resetGame()
     bottomScreenPipes.clear();
 }
 
-void handledSpriteRotation(Rectangle &spriteBounds, size_t spritesQuantity, float rotationAngle)
-{
-    for (size_t index = 0; index < spritesQuantity; index++)
-    {
-        C2D_SpriteSetPos(&birdSprites[index], spriteBounds.x, spriteBounds.y);
-
-        // [in]	sprite	Pointer to sprite [in]	radians	Amount to rotate in radians, if I want to use degrees I can use C2D_SpriteRotateDegrees for the angle
-        C2D_SpriteSetRotation(&birdSprites[index], rotationAngle);
-    }
-}
-
 void handleBirdRotation()
 {
     downRotationTimer++;
 
     if (downRotationTimer < 10)
     {
-        handledSpriteRotation(player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
+        handleSpriteRotation(birdSprites, player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
     }
 
     if (shouldRotateUp)
@@ -225,7 +196,7 @@ void handleBirdRotation()
             shouldRotateUp = false;
         }
 
-        handledSpriteRotation(player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
+        handleSpriteRotation(birdSprites, player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
     }
 
     if (downRotationTimer > 10)
@@ -235,7 +206,7 @@ void handleBirdRotation()
             rotationAngle += 0.1;
         }
 
-        handledSpriteRotation(player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
+        handleSpriteRotation(birdSprites, player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
     }
 }
 
@@ -325,7 +296,7 @@ void update()
         }
     }
 
-    handledSpriteRotation(player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
+    handleSpriteRotation(birdSprites, player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
 
     if (startGameTimer > 40)
     {
@@ -333,47 +304,42 @@ void update()
     }
     else
     {
-        handledSpriteRotation(player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
+        handleSpriteRotation(birdSprites, player.sprite.bounds, frameInfo.SpritesQuantity, rotationAngle);
     }
 }
 
-void drawAndRotateImage(Sprite &sprite, float rotation)
+void initializeSpriteAnimations(C2D_SpriteSheet &spriteSheet, C2D_Sprite *sprites, int positionX, int positionY)
 {
-    // need to make this adjustment, because the	x and y coordinates place the image in the center, instead of the top-left corner.
-    float positionX = player.sprite.bounds.x + player.sprite.bounds.w / 2;
-    float positionY = player.sprite.bounds.y + player.sprite.bounds.h / 2;
+    frameInfo.SpritesQuantity = C2D_SpriteSheetCount(spriteSheet);
 
-    C2D_DrawImageAtRotated(player.sprite.texture, positionX, positionY, player.sprite.bounds.z, rotation, NULL, 1, 1);
-}
+    // Set the first sprite to the beginning of the spriteSheet
+    frameInfo.currentFrameIndex = 0;
+    frameInfo.shouldLoopOnce = false;
 
-void drawSpriteAnimation()
-{
-    // Get an elapsed time
-    refreshInfo.stop = osGetTime();
-    refreshInfo.elapsed = refreshInfo.stop - refreshInfo.start;
-
-    // Check the elapsed time which is greater than or equal to the refresh time
-    if (refreshInfo.elapsed >= refreshInfo.refreshTime)
+    // init sprites
+    for (size_t index = 0; index < frameInfo.SpritesQuantity; index++)
     {
-        // Update next sprite
-        if (!frameInfo.shouldLoopOnce)
-        {
-            frameInfo.currentFrameIndex = (frameInfo.currentFrameIndex + 1) % frameInfo.SpritesQuantity;
-        }
-        else
-        {
-            if (frameInfo.currentFrameIndex < frameInfo.SpritesQuantity - 1)
-            {
-                frameInfo.currentFrameIndex++;
-            }
-        }
+        // Load the spriteheet to each sprites (or frames)
+        C2D_SpriteFromSheet(&sprites[index], spriteSheet, index);
+        // Set the position, and rotation of the object
+        C2D_SpriteSetPos(&sprites[index], positionX, positionY);
+        C2D_SpriteSetRotationDegrees(&sprites[index], 0);
+    }
 
-        refreshInfo.start = osGetTime();
-        C2D_DrawSprite(&birdSprites[frameInfo.currentFrameIndex]);
+    // Set initial value
+    refreshInfo.start = osGetTime();
+    refreshInfo.elapsed = 0;
+
+    int refreshTime = 140;
+
+    // Set a desired sprite refresh time (ms)
+    if (refreshTime < ANIMATION_REFRESH_TIME_MIN)
+    {
+        refreshInfo.refreshTime = ANIMATION_REFRESH_TIME_MIN;
     }
     else
     {
-        C2D_DrawSprite(&birdSprites[frameInfo.currentFrameIndex]);
+        refreshInfo.refreshTime = refreshTime;
     }
 }
 
@@ -441,7 +407,7 @@ void renderTopScreen()
         renderSprite(groundSprite);
     }
 
-    drawSpriteAnimation();
+    drawSpriteAnimation(birdSprites, refreshInfo, frameInfo);
 
     C3D_FrameEnd(0);
 }
@@ -488,50 +454,15 @@ void loadNumbersSprites()
 
     for (int i = 0; i < 10; i++)
     {
-        std::string completeString = std::to_string(i) + fileExtension;
+        std::string completePath = std::to_string(i) + fileExtension;
 
-        Sprite numberSprite = loadSprite(completeString.c_str(), TOP_SCREEN_WIDTH / 2, 15, 24, 36);
+        Sprite numberSprite = loadSprite(completePath.c_str(), TOP_SCREEN_WIDTH / 2, 15, 24, 36);
 
         numbers.push_back(numberSprite);
         numberTens.push_back(numberSprite);
 
         highScoreNumbers.push_back(numberSprite);
         highScoreNumberTens.push_back(numberSprite);
-    }
-}
-
-void initializeSpriteAnimations(C2D_SpriteSheet &spriteSheet)
-{
-    frameInfo.SpritesQuantity = C2D_SpriteSheetCount(spriteSheet);
-
-    // Set the first sprite to the beginning of the spriteSheet
-    frameInfo.currentFrameIndex = 0;
-    frameInfo.shouldLoopOnce = false;
-
-    // init sprites
-    for (size_t index = 0; index < frameInfo.SpritesQuantity; index++)
-    {
-        // Load the spriteheet to each sprites (or frames)
-        C2D_SpriteFromSheet(&birdSprites[index], spriteSheet, index);
-        // Set the position, and rotation of the object
-        C2D_SpriteSetPos(&birdSprites[index], TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-        C2D_SpriteSetRotationDegrees(&birdSprites[index], 0);
-    }
-
-    // Set initial value
-    refreshInfo.start = osGetTime();
-    refreshInfo.elapsed = 0;
-
-    int refreshTime = 140;
-
-    // Set a desired sprite refresh time (ms)
-    if (refreshTime < ANIMATION_REFRESH_TIME_MIN)
-    {
-        refreshInfo.refreshTime = ANIMATION_REFRESH_TIME_MIN;
-    }
-    else
-    {
-        refreshInfo.refreshTime = refreshTime;
     }
 }
 
@@ -548,7 +479,7 @@ int main(int argc, char *argv[])
 
     C2D_SpriteSheet birdsSpriteSheet = C2D_SpriteSheetLoad("romfs:/gfx/bird-sprites.t3x");
 
-    initializeSpriteAnimations(birdsSpriteSheet);
+    initializeSpriteAnimations(birdsSpriteSheet, birdSprites, TOP_SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 
     loadNumbersSprites();
 
