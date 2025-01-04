@@ -308,41 +308,6 @@ void update()
     }
 }
 
-void initializeSpriteAnimations(C2D_SpriteSheet &spriteSheet, C2D_Sprite *sprites, int positionX, int positionY)
-{
-    frameInfo.SpritesQuantity = C2D_SpriteSheetCount(spriteSheet);
-
-    // Set the first sprite to the beginning of the spriteSheet
-    frameInfo.currentFrameIndex = 0;
-    frameInfo.shouldLoopOnce = false;
-
-    // init sprites
-    for (size_t index = 0; index < frameInfo.SpritesQuantity; index++)
-    {
-        // Load the spriteheet to each sprites (or frames)
-        C2D_SpriteFromSheet(&sprites[index], spriteSheet, index);
-        // Set the position, and rotation of the object
-        C2D_SpriteSetPos(&sprites[index], positionX, positionY);
-        C2D_SpriteSetRotationDegrees(&sprites[index], 0);
-    }
-
-    // Set initial value
-    refreshInfo.start = osGetTime();
-    refreshInfo.elapsed = 0;
-
-    int refreshTime = 140;
-
-    // Set a desired sprite refresh time (ms)
-    if (refreshTime < ANIMATION_REFRESH_TIME_MIN)
-    {
-        refreshInfo.refreshTime = ANIMATION_REFRESH_TIME_MIN;
-    }
-    else
-    {
-        refreshInfo.refreshTime = refreshTime;
-    }
-}
-
 void renderTopScreen()
 {
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
@@ -407,7 +372,14 @@ void renderTopScreen()
         drawSprite(groundSprite);
     }
 
-    drawSpriteAnimation(birdSprites, refreshInfo, frameInfo);
+    if (!isGameOver)
+    {
+        drawSpriteAnimation(birdSprites, refreshInfo, frameInfo);
+    }
+    else
+    {
+        drawAndRotateImage(player.sprite, rotationAngle);
+    }
 
     C3D_FrameEnd(0);
 }
@@ -463,6 +435,41 @@ void loadNumbersSprites()
 
         highScoreNumbers.push_back(numberSprite);
         highScoreNumberTens.push_back(numberSprite);
+    }
+}
+
+void initializeSpriteAnimations(C2D_SpriteSheet &spriteSheet, C2D_Sprite *sprites, int positionX, int positionY)
+{
+    frameInfo.SpritesQuantity = C2D_SpriteSheetCount(spriteSheet);
+
+    // Set the first sprite to the beginning of the spriteSheet
+    frameInfo.currentFrameIndex = 0;
+    frameInfo.shouldLoopOnce = false;
+
+    // init sprites
+    for (size_t index = 0; index < frameInfo.SpritesQuantity; index++)
+    {
+        // Load the spriteheet to each sprites (or frames)
+        C2D_SpriteFromSheet(&sprites[index], spriteSheet, index);
+        // Set the position, and rotation of the object
+        C2D_SpriteSetPos(&sprites[index], positionX, positionY);
+        C2D_SpriteSetRotationDegrees(&sprites[index], 0);
+    }
+
+    // Set initial value
+    refreshInfo.start = osGetTime();
+    refreshInfo.elapsed = 0;
+
+    int refreshTime = 140;
+
+    // Set a desired sprite refresh time (ms)
+    if (refreshTime < ANIMATION_REFRESH_TIME_MIN)
+    {
+        refreshInfo.refreshTime = ANIMATION_REFRESH_TIME_MIN;
+    }
+    else
+    {
+        refreshInfo.refreshTime = refreshTime;
     }
 }
 
