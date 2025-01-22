@@ -29,9 +29,6 @@ int highScore;
 SpriteRefreshInfo refreshInfo;
 SpriteFrameInfo frameInfo;
 
-Rectangle touchBounds = {0, 0, 0, 8, 8, WHITE};
-Rectangle bottomScreenBounds = {10, 10, 0, BOTTOM_SCREEN_WIDTH, SCREEN_HEIGHT, BLACK};
-
 Rectangle birdsBounds;
 Sprite startGameSprite;
 Sprite topBackgroundSprite;
@@ -517,25 +514,20 @@ int main(int argc, char *argv[])
 
     srand(time(NULL));
 
-    touchPosition touch;
-
     while (aptMainLoop())
     {
         hidScanInput();
 
-        hidTouchRead(&touch);
-
-        touchBounds.x = touch.px;
-        touchBounds.y = touch.py;
-
         int keyDown = hidKeysDown();
+        int keyHeld = hidKeysHeld();
 
-        if (keyDown & KEY_START || (isGamePaused && hasCollision(bottomScreenBounds, touchBounds)))
+        // just use keyHeld & KEY_TOUCH to detect touch in the screen
+        if (keyDown & KEY_START || (isGamePaused && keyHeld & KEY_TOUCH))
         {
             isGamePaused = !isGamePaused;
         }
 
-        if (!isGameOver && (keyDown & KEY_A || hasCollision(bottomScreenBounds, touchBounds)))
+        if (!isGameOver && (keyDown & KEY_A || keyHeld & KEY_TOUCH))
         {
             gravity = player.impulse;
 
@@ -546,7 +538,7 @@ int main(int argc, char *argv[])
             // Mix_PlayChannel(-1, flapSound, 0);
         }
 
-        else if (isGameOver && (keyDown & KEY_A || hasCollision(bottomScreenBounds, touchBounds)))
+        else if (isGameOver && (keyDown & KEY_A || keyHeld & KEY_TOUCH))
         {
             resetGame();
         }
