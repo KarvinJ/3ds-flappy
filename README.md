@@ -18,5 +18,5 @@ I built everything using Windows 10
 
 # Preview
 <p align="center">
-  <img src="flappy.jpg" alt="" width="960">
+  <img src="flappy.jpg" alt="" width="401">
 </p>
