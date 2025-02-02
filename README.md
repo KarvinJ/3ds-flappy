@@ -1,6 +1,6 @@
-# 3DS CITRO2D STARTER
+# 3DS Flappy
 
-A Nintendo 3DS CITRO2D starter template.
+A Nintendo 3DS CITRO2D Flappy bird clone.
 
 # Building
 
@@ -15,3 +15,8 @@ I built everything using Windows 10
 * Clone this repo
 * `cd 3ds-flappy`
 * `make`
+
+# Preview
+<p align="center">
+  <img src="flappy.jpg" alt="" width="960">
+</p>
