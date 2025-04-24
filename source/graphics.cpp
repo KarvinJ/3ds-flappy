@@ -1,5 +1,5 @@
 #include "graphics.h"
-#include <iostream>
+#include <string>
 
 void drawRectangle(Rectangle &rectangle)
 {

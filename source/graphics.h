@@ -1,7 +1,5 @@
 #pragma once
 
-#include <3ds/svc.h>
-#include <3ds/types.h>
 #include <citro2d.h>
 
 #define ANIMATION_REFRESH_TIME_MIN 34 //  A minimum of the animation refresh time is 34ms if 60 fps then set to 17ms
