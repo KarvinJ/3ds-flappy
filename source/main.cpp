@@ -519,15 +519,14 @@ int main(int argc, char *argv[])
         hidScanInput();
 
         int keyDown = hidKeysDown();
-        int keyHeld = hidKeysHeld();
 
-        // just use keyHeld & KEY_TOUCH to detect touch in the screen
-        if (keyDown & KEY_START || (isGamePaused && keyHeld & KEY_TOUCH))
+        // just use keyDown & KEY_TOUCH to detect touch in the screen
+        if (keyDown & KEY_START || (isGamePaused && keyDown & KEY_TOUCH))
         {
             isGamePaused = !isGamePaused;
         }
 
-        if (!isGameOver && (keyDown & KEY_A || keyHeld & KEY_TOUCH))
+        if (!isGameOver && (keyDown & KEY_A || keyDown & KEY_TOUCH))
         {
             gravity = player.impulse;
 
@@ -538,7 +537,7 @@ int main(int argc, char *argv[])
             // Mix_PlayChannel(-1, flapSound, 0);
         }
 
-        else if (isGameOver && (keyDown & KEY_A || keyHeld & KEY_TOUCH))
+        else if (isGameOver && (keyDown & KEY_A || keyDown & KEY_TOUCH))
         {
             resetGame();
         }
